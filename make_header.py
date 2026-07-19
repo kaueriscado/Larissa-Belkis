@@ -88,18 +88,19 @@ def wrap(draw, text, font, max_w):
     return lines
 
 def build_header():
-    logo_size = 132
+    # Proporções de um tweet real: avatar pequeno e redondo
+    logo_size = 88
     logo, real = load_logo(logo_size)
-    badge = make_badge(46)
+    badge = make_badge(32)
 
-    f_name = ImageFont.truetype(FONT_BOLD, 40)
-    f_handle = ImageFont.truetype(FONT_REG, 32)
+    f_name = ImageFont.truetype(FONT_BOLD, 34)
+    f_handle = ImageFont.truetype(FONT_REG, 29)
 
     # Ajuste dinâmico do tamanho do hook para caber em no máx. 3 linhas
     max_w = W - 2*PAD
     tmp = Image.new("RGB", (10, 10))
     td = ImageDraw.Draw(tmp)
-    hook_size = 52
+    hook_size = 50
     while hook_size >= 34:
         f_hook = ImageFont.truetype(FONT_BOLD, hook_size)
         lines = wrap(td, HOOK, f_hook, max_w)
@@ -112,27 +113,32 @@ def build_header():
     asc, desc = f_hook.getmetrics()
     line_h = asc + desc
 
-    top_pad = 40
+    top_pad = 34
     id_h = logo_size
-    gap_id_hook = 34
+    gap_id_hook = 30
     hook_block = len(lines)*line_h + (len(lines)-1)*line_gap
-    bottom_pad = 44
+    bottom_pad = 40
     H = top_pad + id_h + gap_id_hook + hook_block + bottom_pad
 
     hdr = Image.new("RGB", (W, H), (0, 0, 0))
     d = ImageDraw.Draw(hdr)
 
-    # identidade
+    # identidade (bloco nome+handle centralizado verticalmente ao lado do avatar)
     lx, ly = PAD, top_pad
     hdr.paste(logo, (lx, ly), logo)
-    tx = lx + logo_size + 22
-    name_y = ly + 20
+    tx = lx + logo_size + 18
+    n_asc, n_desc = f_name.getmetrics()
+    h_asc, h_desc = f_handle.getmetrics()
+    line_gap_id = 4
+    block_h = (n_asc + n_desc) + line_gap_id + (h_asc + h_desc)
+    name_y = ly + (logo_size - block_h) // 2
     d.text((tx, name_y), NAME, font=f_name, fill=(255, 255, 255))
     nw = d.textlength(NAME, font=f_name)
-    bx = int(tx + nw + 12)
-    by = int(name_y + (f_name.getmetrics()[0]) - badge.size[1] + 6)
+    bx = int(tx + nw + 10)
+    by = int(name_y + n_asc - badge.size[1] + 2)
     hdr.paste(badge, (bx, by), badge)
-    d.text((tx, name_y + 48), HANDLE, font=f_handle, fill=(136, 143, 152))
+    handle_y = name_y + (n_asc + n_desc) + line_gap_id
+    d.text((tx, handle_y), HANDLE, font=f_handle, fill=(113, 118, 123))
 
     # hook
     y = ly + id_h + gap_id_hook
